@@ -1,10 +1,21 @@
-from imp import reload
-from fastapi import FastAPI
+from fastapi import FastAPI, status, Response, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
 import uvicorn
 
-app = FastAPI(
-    title="Fast blog api"
-)
+doc_description = """
+fast blog api documentation. 🚀
+"""
+
+
+app = FastAPI(title="Fast blog api",
+              description=doc_description, version="1.0.1", contact={
+                  "name": "Deadpoolio the Amazing",
+                  "url": "http://x-force.example.com/contact/",
+                  "email": "dp@x-force.example.com",
+              })
+
+app.mount('/static', StaticFiles(directory='public'))
 
 
 @app.get('/')
@@ -12,6 +23,37 @@ def root_eendpint():
     return {
         'message': 'Hello World'
     }
+
+
+articles = [
+    {"id": 1, "title": "Post title 1", "published": True},
+    {"id": 2, "title": "Post title 2", "published": True},
+    {"id": 3, "title": "Post title 3", "published": True},
+    {"id": 4, "title": "Post title 4", "published": True},
+    {"id": 5, "title": "Post title 5", "published": False},
+    {"id": 6, "title": "Post title 6", "published": True},
+    {"id": 7, "title": "Post title 7", "published": True},
+    {"id": 8, "title": "Post title 8", "published": False},
+    {"id": 9, "title": "Post title 9", "published": True},
+    {"id": 10, "title": "Post title 10", "published": False},
+]
+
+
+@app.get('/article-list', name="List of all articles", description="List of all articles")
+def all_articles():
+    return JSONResponse(content=articles, status_code=status.HTTP_200_OK)
+
+
+@app.get('/get-article/{id}', status_code=status.HTTP_200_OK)
+def get_article(id: int):
+    filtered_article = filter(lambda article: article['id'] == id, articles)
+    filtered_article_list = list(filtered_article)
+
+    if len(filtered_article_list) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Article not found")
+
+    return filtered_article_list
 
 
 if __name__ == '__main__':

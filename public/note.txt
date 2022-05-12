@@ -1,0 +1,6 @@
+app = FastAPI(title="Fast blog api",
+              description=doc_description, version="1.0.1", contact={
+                  "name": "Deadpoolio the Amazing",
+                  "url": "http://x-force.example.com/contact/",
+                  "email": "dp@x-force.example.com",
+              })
