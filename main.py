@@ -1,7 +1,9 @@
 from fastapi import FastAPI, status, Response, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 import uvicorn
+from typing import Optional
 
 doc_description = """
 fast blog api documentation. 🚀
@@ -40,8 +42,12 @@ articles = [
 
 
 @app.get('/article-list', name="List of all articles", description="List of all articles")
-def all_articles():
-    return JSONResponse(content=articles, status_code=status.HTTP_200_OK)
+def all_articles(published: bool = True):
+    filered = filter(
+        lambda article: article['published'] == published, articles)
+
+    return list(filered)
+    # return JSONResponse(content=articles, status_code=status.HTTP_200_OK)
 
 
 @app.get('/get-article/{id}', status_code=status.HTTP_200_OK)
@@ -54,6 +60,26 @@ def get_article(id: int):
             status_code=status.HTTP_404_NOT_FOUND, detail="Article not found")
 
     return filtered_article_list
+
+
+class CreateArticlePayload(BaseModel):
+    title: str
+    body: str
+    published: bool
+
+
+@app.post('/create-article', status_code=status.HTTP_201_CREATED)
+def create_article(payload: CreateArticlePayload):
+    articles.append({
+        'id': len(articles) + 1,
+        'title': payload.title,
+        "body": payload.body,
+    })
+
+    return {
+        "message": "Article created",
+        "data": articles[-1]
+    }
 
 
 if __name__ == '__main__':
